@@ -9,6 +9,13 @@ namespace ProtectConductiveItems.Patches;
 
 [HarmonyPatch(typeof(StormyWeather))]
 public static class StormyWeatherPatch {
+    public static StormyWeather? stormyWeather;
+
+    [HarmonyPatch(nameof(StormyWeather.OnEnable))]
+    [HarmonyPostfix]
+    // ReSharper disable once InconsistentNaming
+    private static void CacheStormyWeather(StormyWeather __instance) => stormyWeather = __instance;
+
     [HarmonyPatch(nameof(StormyWeather.GetMetalObjectsAfterDelay), MethodType.Enumerator)]
     [HarmonyTranspiler]
     private static IEnumerable<CodeInstruction> ReplaceFindObjectsOfTypeCall(IEnumerable<CodeInstruction> instructions) {
@@ -43,18 +50,20 @@ public static class StormyWeatherPatch {
 
         ProtectConductiveItems.Logger.LogDebug($"Unfiltered objects count: {grabbableObjectsList.Count}");
 
-        grabbableObjectsList.RemoveAll(grabbableObject => {
-            var itemProperties = grabbableObject?.itemProperties;
-
-            if (itemProperties is null) return true;
-
-            if (ProtectConductiveItems.protectToolsEntry.Value && !itemProperties.isScrap) return true;
-
-            return ProtectConductiveItems.FilterList.Any(filter => itemProperties.itemName.ToLower().StartsWith(filter));
-        });
+        grabbableObjectsList.RemoveAll(MatchesFilter);
 
         ProtectConductiveItems.Logger.LogDebug($"Filtered objects count: {grabbableObjectsList.Count}");
 
         return grabbableObjectsList.ToArray();
+    }
+
+    public static bool MatchesFilter(GrabbableObject grabbableObject) {
+        var itemProperties = grabbableObject?.itemProperties;
+
+        if (itemProperties is null) return true;
+
+        if (ProtectConductiveItems.protectToolsEntry.Value && !itemProperties.isScrap) return true;
+
+        return ProtectConductiveItems.FilterList.Any(filter => itemProperties.itemName.ToLower().StartsWith(filter));
     }
 }
