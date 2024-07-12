@@ -5,7 +5,7 @@
         <AssemblyName>TestAccount666.ProtectConductiveItems</AssemblyName>
         <Product>ProtectConductiveItems</Product>
         <!-- Change to whatever version you're currently on. -->
-        <Version>1.0.0</Version>
+        <Version>1.1.0</Version>
         <Description>Protects your items from lightning</Description>
         <Source>https://github.com/Test-Account666/LethalCompany-ProtectConductiveItems/</Source>
     </PropertyGroup>
